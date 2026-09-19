@@ -1,13 +1,10 @@
-import React from "react"
 import { headers as getHeaders } from "next/headers.js"
 import { redirect } from "next/navigation"
 import { getPayload } from "payload"
 
-import { Gutter } from "../_components/Gutter"
 import { RenderParams } from "../_components/RenderParams"
 import config from "../../../payload.config"
 import { CreateAccountForm } from "./CreateAccountForm"
-import classes from "./index.module.scss"
 
 export default async function CreateAccount() {
   const headers = await getHeaders()
@@ -23,10 +20,11 @@ export default async function CreateAccount() {
   }
 
   return (
-    <Gutter className={classes.createAccount}>
-      <h1>Create Account</h1>
+    <div className="min-h-screen">
+      <div className="flex justify-center p-6">
       <RenderParams />
       <CreateAccountForm />
-    </Gutter>
+      </div>
+    </div>
   )
 }

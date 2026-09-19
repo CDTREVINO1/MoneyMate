@@ -3,13 +3,26 @@
 import React, { useCallback, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 
-import { Button } from "../../_components/Button"
-import { Input } from "../../_components/Input"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
 import { Message } from "../../_components/Message"
 import { useAuth } from "../../_providers/Auth"
-import classes from "./index.module.scss"
 
 type FormData = {
   email: string
@@ -25,15 +38,16 @@ export const CreateAccountForm: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<null | string>(null)
 
-  const {
-    formState: { errors },
-    handleSubmit,
-    register,
-    watch,
-  } = useForm<FormData>()
+  const form = useForm<FormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+      passwordConfirm: "",
+    },
+  })
 
   const password = useRef({})
-  password.current = watch("password", "")
+  password.current = form.watch("password", "")
 
   const onSubmit = useCallback(
     async (data: FormData) => {
@@ -82,54 +96,119 @@ export const CreateAccountForm: React.FC = () => {
   )
 
   return (
-    <form className={classes.form} onSubmit={handleSubmit(onSubmit)}>
-      <p>
-        {`This is where new customers can signup and create a new account. To manage all users, `}
-        <Link
-          href={`${process.env.NEXT_PUBLIC_SERVER_URL}/admin/collections/users`}
+    <Card className="w-full sm:max-w-md">
+      <CardHeader>
+        <CardTitle className="text-2xl">Create Account</CardTitle>
+        <CardDescription>
+          <p>
+            {`This is where new customers can signup and create a new account. To manage all users, `}
+            <Link
+              href={`${process.env.NEXT_PUBLIC_SERVER_URL}/admin/collections/users`}
+            >
+              login to the admin dashboard
+            </Link>
+            .
+          </p>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form
+          id="form-create-user"
+          className="w-full sm:max-w-md"
+          onSubmit={form.handleSubmit(onSubmit)}
         >
-          login to the admin dashboard
-        </Link>
-        .
-      </p>
-      <Message className={classes.message} error={error} />
-      <Input
-        error={errors.email}
-        label="Email Address"
-        name="email"
-        register={register}
-        required
-        type="email"
-      />
-      <Input
-        error={errors.password}
-        label="Password"
-        name="password"
-        register={register}
-        required
-        type="password"
-      />
-      <Input
-        error={errors.passwordConfirm}
-        label="Confirm Password"
-        name="passwordConfirm"
-        register={register}
-        required
-        type="password"
-        validate={(value) =>
-          value === password.current || "The passwords do not match"
-        }
-      />
-      <Button
-        appearance="primary"
-        className={classes.submit}
-        label={loading ? "Processing" : "Create Account"}
-        type="submit"
-      />
-      <div>
-        {"Already have an account? "}
-        <Link href={`/login${allParams}`}>Login</Link>
-      </div>
-    </form>
+          <FieldGroup>
+            <Message error={error} />
+
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-user-email">
+                    Email
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="form-create-user-email"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Email"
+                    autoComplete="off"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-user-password">
+                    Password
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="form-create-user-password"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Password"
+                    autoComplete="off"
+                    type="password"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="passwordConfirm"
+              control={form.control}
+              rules={{
+                validate: (value) => {
+                  const password = form.getValues("password")
+                  return value === password || "The passwords do not match"
+                },
+              }}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-create-user-password">
+                    Confirm Password
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="form-create-user-password"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Password"
+                    autoComplete="off"
+                    type="password"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Button
+              className="cursor-pointer"
+              label={loading ? "Processing" : "Create Account"}
+              disabled={form.formState.isLoading}
+              type="submit"
+            >
+              Create Account
+            </Button>
+            <div>
+              {"Already have an account? "}
+              <Link href={`/login${allParams}`}>Login</Link>
+            </div>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
